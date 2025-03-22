@@ -21,39 +21,35 @@ def get_btc_price():
         return "获取失败"
 
 # === 获取 AHR999 ===
+import re
+
 def get_ahr999():
     try:
         url = "https://www.feixiaohao.com/data/ahr999/"
         headers = {'User-Agent': 'Mozilla/5.0'}
         res = requests.get(url, headers=headers, timeout=10)
-        soup = BeautifulSoup(res.text, 'lxml')
-
-        # 修复关键：冒号必须为中文全角 “：”
-        label_span = soup.find('span', string="当前ahr999指标为：")
-        if label_span:
-            value_span = label_span.find_next_sibling('span')
-            if value_span:
-                ahr_value = value_span.text.strip()
-                return ahr_value
-        raise ValueError("AHR999定位失败")
+        matches = re.findall(r'ahr999指标为.*?(\d+\.\d{4})', res.text)
+        if matches:
+            return matches[0]
+        raise ValueError("AHR999正则匹配失败")
     except Exception as e:
         print("❌ AHR999抓取失败:", e)
         return "获取失败"
 
 
+
 # === 获取 DXY ===
 def get_dxy():
     try:
-        url = "https://www.marketwatch.com/investing/index/dxy"
-        headers = {'User-Agent': 'Mozilla/5.0'}
-        res = requests.get(url, headers=headers, timeout=10)
-        soup = BeautifulSoup(res.text, 'lxml')
-
-        dxy_value = soup.select_one("bg-quote.value").text.strip()
-        return dxy_value
+        url = "https://query1.finance.yahoo.com/v8/finance/chart/DXY"
+        res = requests.get(url, timeout=10)
+        data = res.json()
+        dxy_value = data["chart"]["result"][0]["meta"]["regularMarketPrice"]
+        return f"{dxy_value:.2f}"
     except Exception as e:
         print("❌ DXY获取失败:", e)
         return "获取失败"
+
 
 # === 获取 RRP余额 ===
 def get_rrp_balance():
