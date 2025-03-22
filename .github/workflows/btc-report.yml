@@ -17,6 +17,11 @@ jobs:
         with:
           python-version: '3.x'
 
+      - name: 安装Python依赖
+        run: |
+          pip install requests openai beautifulsoup4 lxml
+
+
       - name: Install dependencies
         run: |
           pip install openai==0.28 requests   # ← 这里加了版本号 ✅
@@ -28,3 +33,5 @@ jobs:
           OPENAI_ORG_ID: ${{ secrets.OPENAI_ORG_ID }}
           OPENAI_PROJECT_ID: ${{ secrets.OPENAI_PROJECT_ID }}
           SERVER_CHAN_KEY: ${{ secrets.SERVER_CHAN_KEY }}
+
+
