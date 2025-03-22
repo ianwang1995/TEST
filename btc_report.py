@@ -30,30 +30,46 @@ from bs4 import BeautifulSoup
 session = requests.Session()
 
 # === 获取 AHR 数据 ===
-def get_ahr_data():
+import requests
+
+def get_ahr999():
+    url = "https://dncapi.flink1.com/api/v2/index/arh999?code=bitcoin&webp=1"
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36",
+        # 如果需要，可以加上 Referer 或其他头部
+        # "Referer": "https://www.feixiaohao.com/data/ahrdata.html",
+        # 还可以根据实际需要添加 Cookie 等
+    }
     try:
-        url = "https://www.feixiaohao.com/data/ahrdata.html"
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-            'Accept-Language': 'zh-CN,zh;q=0.9'
-        }
-        response = session.get(url, headers=headers, timeout=10)
-        if response.status_code != 200:
-            raise ValueError(f"请求失败，状态码: {response.status_code}")
+        resp = requests.get(url, headers=headers, timeout=10)
+        resp.raise_for_status()  # 若状态码不是200，这会抛出异常
+        data = resp.json()       # 解析JSON响应
         
-        soup = BeautifulSoup(response.text, 'lxml')
-        # 示例：假定数据位于 <div class="ahrdata"> 内的某个 <span> 中
-        container = soup.find("div", class_="ahrdata")
-        if not container:
-            raise ValueError("未能定位到 div.ahrdata")
-        span = container.find("span")
-        if not span:
-            raise ValueError("未能在 div.ahrdata 内找到 span 元素")
-        return span.text.strip()
+        # data 的结构大致可能是：
+        # {
+        #   "code": 0,
+        #   "msg": "success",
+        #   "data": {
+        #       "value": 0.8272,
+        #       ...
+        #   }
+        # }
+        
+        # 具体字段名以实际返回内容为准
+        if data.get("code") == 0 and "data" in data:
+            ahr_value = data["data"].get("value")
+            return ahr_value
+        else:
+            # 如果返回结构跟预期不一致，就抛出异常或返回“获取失败”
+            raise ValueError(f"接口返回异常, data={data}")
     except Exception as e:
-        print("❌ AHR数据抓取失败:", e)
+        print("❌ AHR999抓取失败:", e)
         return "获取失败"
+
+
+if __name__ == "__main__":
+    value = get_ahr999()
+    print("AHR999 值:", value)
 
 # === 获取 DXY 数据 ===
 def get_dxy():
