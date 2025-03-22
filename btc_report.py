@@ -32,7 +32,7 @@ session = requests.Session()
 # === 获取 AHR 数据 ===
 import requests
 
-def get_latest_ahr():
+def get_ahr999():
     """
     请求接口并返回最新的 AHR 值，即最后一组数据中下标为 1 的数值
     """
