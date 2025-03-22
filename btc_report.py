@@ -23,38 +23,52 @@ def get_btc_price():
 import requests
 from bs4 import BeautifulSoup
 
-# === 获取 AHR999 ===
-def get_ahr999():
+import requests
+from bs4 import BeautifulSoup
+
+# 使用全局 Session 对象以复用 Cookie 和连接
+session = requests.Session()
+
+# === 获取 AHR 数据 ===
+def get_ahr_data():
     try:
-        url = "https://www.feixiaohao.com/data/ahr999/"
-        headers = {'User-Agent': 'Mozilla/5.0'}
-        response = requests.get(url, headers=headers, timeout=10)
+        url = "https://www.feixiaohao.com/data/ahrdata.html"
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            'Accept-Language': 'zh-CN,zh;q=0.9'
+        }
+        response = session.get(url, headers=headers, timeout=10)
         if response.status_code != 200:
             raise ValueError(f"请求失败，状态码: {response.status_code}")
+        
         soup = BeautifulSoup(response.text, 'lxml')
-        container = soup.find("div", class_="ahr999")
+        # 示例：假定数据位于 <div class="ahrdata"> 内的某个 <span> 中
+        container = soup.find("div", class_="ahrdata")
         if not container:
-            raise ValueError("未能定位到 div.ahr999")
+            raise ValueError("未能定位到 div.ahrdata")
         span = container.find("span")
         if not span:
-            raise ValueError("未能在 div.ahr999 内找到 span 元素")
+            raise ValueError("未能在 div.ahrdata 内找到 span 元素")
         return span.text.strip()
     except Exception as e:
-        print("❌ AHR999抓取失败:", e)
+        print("❌ AHR数据抓取失败:", e)
         return "获取失败"
 
-
-# === 获取 DXY ===
+# === 获取 DXY 数据 ===
 def get_dxy():
     try:
         url = "https://www.marketwatch.com/investing/index/dxy"
         headers = {
-            'User-Agent': 'Mozilla/5.0',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
             'Accept-Language': 'en-US,en;q=0.9',
+            'Referer': 'https://www.marketwatch.com/'
         }
-        response = requests.get(url, headers=headers, timeout=10)
+        response = session.get(url, headers=headers, timeout=10)
         if response.status_code != 200:
             raise ValueError(f"请求失败，状态码: {response.status_code}")
+        
         soup = BeautifulSoup(response.text, 'lxml')
         element = soup.select_one("bg-quote.value")
         if not element:
@@ -63,6 +77,13 @@ def get_dxy():
     except Exception as e:
         print("❌ DXY获取失败:", e)
         return "获取失败"
+
+if __name__ == "__main__":
+    ahr_data = get_ahr_data()
+    dxy_value = get_dxy()
+    print("AHR数据:", ahr_data)
+    print("DXY:", dxy_value)
+
 
 
 # 示例：调用函数并打印结果
