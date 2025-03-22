@@ -2,15 +2,21 @@ import openai
 import requests
 import os
 
+# 读取密钥与环境变量
 openai.api_key = os.getenv("OPENAI_API_KEY")
 openai.organization = os.getenv("OPENAI_ORG_ID")
 openai.project = os.getenv("OPENAI_PROJECT_ID")
 server_key = os.getenv("SERVER_CHAN_KEY")
 
+# 定义 Prompt
 messages = [
-    {"role": "system", "content": "你是一位加密市场分析师，语言专业简洁。"},
-    {"role": "user", "content": "生成一份今天的BTC快报，包含DXY，AHR999，ETF资金流趋势，总结流动性状况和操作建议，语气专业简洁，用中文回答。
-请用简洁、专业的语言生成今天的BTC快报，格式如下：
+    {
+        "role": "system",
+        "content": "你是一位加密市场分析师，语言专业简洁。"
+    },
+    {
+        "role": "user",
+        "content": """请用简洁、专业的语言生成今天的BTC快报，格式如下：
 
 表格内容包含以下6项，格式严格按要求排版：
 
@@ -27,20 +33,22 @@ messages = [
 
 “我的策略为：AHR999<0.75加仓，>1.2减仓。当前指数若未达加仓区，只持有不追涨。我只在流动性宽松、指标低位加仓，目标牛市稳健翻倍。”
 
-整体风格简洁高密度，适合金融交易员阅读，重点突出操作建议与流动性判断。
-"}
+整体风格简洁高密度，适合金融交易员阅读，重点突出操作建议与流动性判断。"""
+    }
 ]
 
 try:
+    # GPT生成快报
     response = openai.ChatCompletion.create(
         model="gpt-4",
         messages=messages,
         temperature=0.7,
-        max_tokens=800
+        max_tokens=1000
     )
     report = response["choices"][0]["message"]["content"].strip()
-    print("生成的快报:\\n", report)
+    print("生成的快报:\n", report)
 
+    # Server酱推送
     url = f"https://sctapi.ftqq.com/{server_key}.send"
     data = {
         "title": "BTC快报",
