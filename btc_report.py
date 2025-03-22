@@ -20,22 +20,28 @@ def get_btc_price():
         print(f"❌ BTC价格抓取失败: {e}")
         return "获取失败"
 
+import requests
+from bs4 import BeautifulSoup
+
 # === 获取 AHR999 ===
 def get_ahr999():
     try:
         url = "https://www.feixiaohao.com/data/ahr999/"
         headers = {'User-Agent': 'Mozilla/5.0'}
-        res = requests.get(url, headers=headers, timeout=10)
-        soup = BeautifulSoup(res.text, 'lxml')
+        response = requests.get(url, headers=headers, timeout=10)
+        if response.status_code != 200:
+            raise ValueError(f"请求失败，状态码: {response.status_code}")
+        soup = BeautifulSoup(response.text, 'lxml')
         container = soup.find("div", class_="ahr999")
+        if not container:
+            raise ValueError("未能定位到 div.ahr999")
         span = container.find("span")
-        if span:
-            return span.text.strip()
-        raise ValueError("AHR999定位失败")
+        if not span:
+            raise ValueError("未能在 div.ahr999 内找到 span 元素")
+        return span.text.strip()
     except Exception as e:
         print("❌ AHR999抓取失败:", e)
         return "获取失败"
-
 
 
 # === 获取 DXY ===
@@ -46,13 +52,26 @@ def get_dxy():
             'User-Agent': 'Mozilla/5.0',
             'Accept-Language': 'en-US,en;q=0.9',
         }
-        res = requests.get(url, headers=headers, timeout=10)
-        soup = BeautifulSoup(res.text, 'lxml')
-        dxy_value = soup.select_one("bg-quote.value").text.strip()
-        return dxy_value
+        response = requests.get(url, headers=headers, timeout=10)
+        if response.status_code != 200:
+            raise ValueError(f"请求失败，状态码: {response.status_code}")
+        soup = BeautifulSoup(response.text, 'lxml')
+        element = soup.select_one("bg-quote.value")
+        if not element:
+            raise ValueError("未能定位到 bg-quote.value")
+        return element.text.strip()
     except Exception as e:
         print("❌ DXY获取失败:", e)
         return "获取失败"
+
+
+# 示例：调用函数并打印结果
+if __name__ == "__main__":
+    ahr999_value = get_ahr999()
+    dxy_value = get_dxy()
+    print("AHR999:", ahr999_value)
+    print("DXY:", dxy_value)
+
 
 
 # === 获取 RRP余额 ===
