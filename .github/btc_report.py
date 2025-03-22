@@ -8,14 +8,20 @@ from datetime import datetime
 def get_btc_price():
     coingecko_api = "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_change=true"
     try:
-        response = requests.get(coingecko_api).json()
-        price = response['bitcoin']['usd']
-        change = response['bitcoin']['usd_24h_change']
-        btc_price_str = f"${price:,.0f}（{change:+.2f}% {'↑' if change > 0 else '↓'}）"
-    except Exception as e:
+        response = requests.get(coingecko_api, timeout=10)
+        response.raise_for_status()  # 检查请求是否成功
+        data = response.json()
+        price = data['bitcoin']['usd']
+        change = data['bitcoin']['usd_24h_change']
+        btc_price_str = f"${price:,.2f}（{change:+.2f}% {'↑' if change > 0 else '↓'}）"
+    except requests.RequestException as e:
         btc_price_str = "获取失败"
-        print("BTC价格获取失败:", e)
+        print(f"获取 BTC 价格时出现网络错误: {e}")
+    except KeyError:
+        btc_price_str = "获取失败"
+        print("解析 BTC 价格数据时出现错误")
     return btc_price_str
+
 
 # === 获取 AHR999 （非小号） ===
 def get_ahr999():
