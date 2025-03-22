@@ -73,23 +73,16 @@ def get_ahr999():
 
 # === 获取 DXY 数据 ===
 
-
 def get_dxy():
-    """
-    使用 yfinance 从 Yahoo Finance 获取 DXY（美元指数期货）数据，
-    数据为延迟行情，适合观察趋势，不适合高频交易。
-    """
-    dxy = yf.download("DX-Y.NYB", period="1d", interval="1m")
-    if not dxy.empty:
-        latest_close = dxy["Close"].iloc[-1]
+    ticker = yf.Ticker("DX-Y.NYB")
+    data = ticker.history(period="1d", interval="1m")
+    if not data.empty:
+        latest_close = data["Close"].iloc[-1]
         return latest_close
     else:
         return "获取失败"
 
-if __name__ == "__main__":
-    dxy_value = get_dxy()
-    print("最新 DXY 值:", dxy_value)
-
+print("最新 DXY 值:", get_dxy())
 
 # === 获取 RRP余额 ===
 def get_rrp_balance():
