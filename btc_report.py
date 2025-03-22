@@ -21,17 +21,17 @@ def get_btc_price():
         return "获取失败"
 
 # === 获取 AHR999 ===
-import re
-
 def get_ahr999():
     try:
         url = "https://www.feixiaohao.com/data/ahr999/"
         headers = {'User-Agent': 'Mozilla/5.0'}
         res = requests.get(url, headers=headers, timeout=10)
-        matches = re.findall(r'ahr999指标为.*?(\d+\.\d{4})', res.text)
-        if matches:
-            return matches[0]
-        raise ValueError("AHR999正则匹配失败")
+        soup = BeautifulSoup(res.text, 'lxml')
+        container = soup.find("div", class_="ahr999")
+        span = container.find("span")
+        if span:
+            return span.text.strip()
+        raise ValueError("AHR999定位失败")
     except Exception as e:
         print("❌ AHR999抓取失败:", e)
         return "获取失败"
@@ -41,11 +41,15 @@ def get_ahr999():
 # === 获取 DXY ===
 def get_dxy():
     try:
-        url = "https://query1.finance.yahoo.com/v8/finance/chart/DXY"
-        res = requests.get(url, timeout=10)
-        data = res.json()
-        dxy_value = data["chart"]["result"][0]["meta"]["regularMarketPrice"]
-        return f"{dxy_value:.2f}"
+        url = "https://www.marketwatch.com/investing/index/dxy"
+        headers = {
+            'User-Agent': 'Mozilla/5.0',
+            'Accept-Language': 'en-US,en;q=0.9',
+        }
+        res = requests.get(url, headers=headers, timeout=10)
+        soup = BeautifulSoup(res.text, 'lxml')
+        dxy_value = soup.select_one("bg-quote.value").text.strip()
+        return dxy_value
     except Exception as e:
         print("❌ DXY获取失败:", e)
         return "获取失败"
