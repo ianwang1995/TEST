@@ -32,44 +32,48 @@ session = requests.Session()
 # === 获取 AHR 数据 ===
 import requests
 
-def get_ahr999():
+def get_latest_ahr():
+    """
+    请求接口并返回最新的 AHR 值，即最后一组数据中下标为 1 的数值
+    """
     url = "https://dncapi.flink1.com/api/v2/index/arh999?code=bitcoin&webp=1"
     headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36",
-        # 如果需要，可以加上 Referer 或其他头部
-        # "Referer": "https://www.feixiaohao.com/data/ahrdata.html",
-        # 还可以根据实际需要添加 Cookie 等
+        "User-Agent": (
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+            "AppleWebKit/537.36 (KHTML, like Gecko) "
+            "Chrome/115.0.0.0 Safari/537.36"
+        ),
+        "Referer": "https://www.feixiaohao.com/",
     }
+    
     try:
         resp = requests.get(url, headers=headers, timeout=10)
-        resp.raise_for_status()  # 若状态码不是200，这会抛出异常
-        data = resp.json()       # 解析JSON响应
+        resp.raise_for_status()
+        data = resp.json()
         
-        # data 的结构大致可能是：
-        # {
-        #   "code": 0,
-        #   "msg": "success",
-        #   "data": {
-        #       "value": 0.8272,
-        #       ...
-        #   }
-        # }
-        
-        # 具体字段名以实际返回内容为准
-        if data.get("code") == 0 and "data" in data:
-            ahr_value = data["data"].get("value")
-            return ahr_value
+        # 检查返回码和数据字段
+        if data.get("code") == 200 and "data" in data:
+            data_list = data["data"]
+            if isinstance(data_list, list) and len(data_list) > 0:
+                # 获取最后一组数据
+                last_data = data_list[-1]
+                # 检查最后一组数据是否有至少2个元素
+                if isinstance(last_data, list) and len(last_data) >= 2:
+                    return last_data[1]
+                else:
+                    raise ValueError("最后一组数据格式不正确")
+            else:
+                raise ValueError("data字段为空或格式不正确")
         else:
-            # 如果返回结构跟预期不一致，就抛出异常或返回“获取失败”
-            raise ValueError(f"接口返回异常, data={data}")
+            raise ValueError(f"接口返回异常，返回数据：{data}")
     except Exception as e:
-        print("❌ AHR999抓取失败:", e)
-        return "获取失败"
-
+        print("❌ AHR 数据获取失败:", e)
+        return None
 
 if __name__ == "__main__":
-    value = get_ahr999()
-    print("AHR999 值:", value)
+    ahr_value = get_latest_ahr()
+    print("最新 AHR 值:", ahr_value)
+
 
 # === 获取 DXY 数据 ===
 def get_dxy():
