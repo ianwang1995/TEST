@@ -23,42 +23,33 @@ def get_btc_price():
 # === 获取 AHR999 ===
 def get_ahr999():
     try:
-        url = "https://www.feixiaohao.com/data/ahr999/"  # 网址必须是此页
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-        }
+        url = "https://www.feixiaohao.com/data/ahr999/"
+        headers = {'User-Agent': 'Mozilla/5.0'}
         res = requests.get(url, headers=headers, timeout=10)
         soup = BeautifulSoup(res.text, 'lxml')
 
-        # 🔍 精准定位含值的 <span>
-        span = soup.select_one("div.ahr999 span")
-        ahr_value = span.text.strip()
-
+        # 精准匹配 class='coininfo-data-num'，抓取第一个
+        ahr_value = soup.select_one("div.coininfo-data-num").text.strip()
         return ahr_value
     except Exception as e:
-        print(f"❌ AHR999抓取失败: {e}")
+        print("❌ AHR999抓取失败:", e)
         return "获取失败"
+
 
 
 # === 获取 DXY ===
-def get_dxy():
+def get_dxy_marketwatch():
     try:
-        url = "https://tw.tradingview.com/symbols/TVC-DXY/"
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-        }
+        url = "https://www.marketwatch.com/investing/index/dxy"
+        headers = {'User-Agent': 'Mozilla/5.0'}
         res = requests.get(url, headers=headers, timeout=10)
         soup = BeautifulSoup(res.text, 'lxml')
 
-        # 精确匹配 DXY 数值
-        span = soup.select_one("span.last-JWoJQcPf.js-symbol-last")
-        dxy_value = span.text.strip()
-
+        dxy_value = soup.select_one("bg-quote.value").text.strip()
         return dxy_value
     except Exception as e:
-        print(f"❌ DXY获取失败: {e}")
+        print("❌ DXY获取失败:", e)
         return "获取失败"
-
 
 # === 获取 RRP余额 ===
 def get_rrp_balance():
