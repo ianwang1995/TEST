@@ -2,29 +2,29 @@ name: BTC Daily Report Push
 
 on:
   schedule:
-    - cron: '0 2 * * *'  # 每天UTC时间2点 = 北京时间10点
+    - cron: '0 2 * * *'  # 北京时间10点
   workflow_dispatch:
 
 jobs:
   report:
     runs-on: ubuntu-latest
     steps:
-      - name: Generate BTC Report with ChatGPT
+      - name: Generate BTC Report and Push
         run: |
-          response=$(curl https://api.openai.com/v1/chat/completions \
+          # 调用 GPT 接口
+          response=$(curl -s https://api.openai.com/v1/chat/completions \
           -H "Content-Type: application/json" \
           -H "Authorization: Bearer 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" \
           -d '{
             "model": "gpt-4",
             "messages": [{"role": "user", "content": "生成一份今天的BTC快报，包含DXY，AHR999，ETF资金流趋势，总结流动性状况和操作建议，语气专业简洁。"}],
             "temperature": 0.7
-          }' | jq -r '.choices[0].message.content')
+          }')
 
-          echo "$response" > report.txt
+          # 解析 response 内容（无 jq）
+          content=$(echo "$response" | grep -oP '"content":\s*"\K([^"]+)' | sed 's/\\n/\n/g')
 
-      - name: Push Report to WeChat via Server酱
-        run: |
-          content=$(cat report.txt)
+          # 发送到微信
           curl -X POST "https://sctapi.ftqq.com/SCT273715TObD5fMvM2OzwRpEitn1uMTHH.send" \
           -d "title=BTC快报" \
           --data-urlencode "desp=$content"
