@@ -1,9 +1,7 @@
 name: BTC Daily Report Preview
 
 on:
-  schedule:
-    - cron: '0 2 * * *'  # UTC 2点 = 北京时间10点
-  workflow_dispatch:
+  workflow_dispatch:  # 手动执行
 
 jobs:
   report:
@@ -14,17 +12,17 @@ jobs:
           echo "调用 GPT 生成快报..."
           response=$(curl -s https://api.openai.com/v1/chat/completions \
           -H "Content-Type: application/json" \
-          -H "Authorization: Bearer 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" \
+          -H "Authorization: Bearer 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" \
           -d '{
             "model": "gpt-4",
             "messages": [{"role": "user", "content": "生成一份今天的BTC快报，包含DXY，AHR999，ETF资金流趋势，总结流动性状况和操作建议，语气专业简洁，用中文回答。"}],
             "temperature": 0.7
           }')
 
-          echo "GPT原始响应："
+          echo "GPT原始响应 ↓↓↓↓↓↓↓↓"
           echo "$response"
 
           content=$(echo "$response" | grep -oP '"content":\s*"\K([^"]+)' | sed 's/\\n/\n/g')
 
-          echo "生成的快报内容："
+          echo "生成的快报内容 ↓↓↓↓↓↓↓↓"
           echo "$content"
