@@ -23,31 +23,42 @@ def get_btc_price():
 # === 获取 AHR999 ===
 def get_ahr999():
     try:
-        headers = {'User-Agent': 'Mozilla/5.0'}
-        res = requests.get("https://www.feixiaohao.com/data/ahr999/", headers=headers, timeout=10)
-        soup = BeautifulSoup(res.text, 'html.parser')
-        ahr_value = soup.find('div', class_='coininfo-data-num').text.strip()
-        value_float = float(ahr_value)
-        if value_float < 0.5 or value_float > 1.5:
-            raise ValueError(f"AHR999异常: {ahr_value}")
+        url = "https://www.feixiaohao.com/data/ahr999/"  # 网址必须是此页
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+        }
+        res = requests.get(url, headers=headers, timeout=10)
+        soup = BeautifulSoup(res.text, 'lxml')
+
+        # 🔍 精准定位含值的 <span>
+        span = soup.select_one("div.ahr999 span")
+        ahr_value = span.text.strip()
+
         return ahr_value
     except Exception as e:
         print(f"❌ AHR999抓取失败: {e}")
         return "获取失败"
 
+
 # === 获取 DXY ===
 def get_dxy():
     try:
-        headers = {'User-Agent': 'Mozilla/5.0'}
-        res = requests.get("https://www.investing.com/indices/us-dollar-index", headers=headers, timeout=10)
-        soup = BeautifulSoup(res.text, 'html.parser')
-        dxy_value = soup.find('span', {'data-test': 'instrument-price-last'}).text.strip()
-        dxy_change = soup.find('span', {'data-test': 'instrument-price-change-percent'}).text.strip()
-        arrow = '↑' if '-' not in dxy_change else '↓'
-        return f"{dxy_value}（{dxy_change}{arrow}）"
+        url = "https://tw.tradingview.com/symbols/TVC-DXY/"
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+        }
+        res = requests.get(url, headers=headers, timeout=10)
+        soup = BeautifulSoup(res.text, 'lxml')
+
+        # 精确匹配 DXY 数值
+        span = soup.select_one("span.last-JWoJQcPf.js-symbol-last")
+        dxy_value = span.text.strip()
+
+        return dxy_value
     except Exception as e:
         print(f"❌ DXY获取失败: {e}")
         return "获取失败"
+
 
 # === 获取 RRP余额 ===
 def get_rrp_balance():
