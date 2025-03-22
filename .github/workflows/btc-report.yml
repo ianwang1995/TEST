@@ -1,0 +1,31 @@
+name: BTC Daily Report Push
+
+on:
+  schedule:
+    - cron: '0 2 * * *'  # UTC时间2点 = 北京时间10点
+  workflow_dispatch:
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate BTC Report with ChatGPT
+        id: chatgpt
+        run: |
+          response=$(curl https://api.openai.com/v1/chat/completions \
+          -H "Content-Type: application/json" \
+          -H "Authorization: Bearer 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" \
+          -d '{
+            "model": "gpt-4",
+            "messages": [{"role": "user", "content": "生成一份今天的BTC快报，包含DXY，AHR999，ETF资金流趋势，总结流动性状况和操作建议，语气专业简洁。"}],
+            "temperature": 0.7
+          }' | jq -r '.choices[0].message.content')
+
+          echo "$response" > report.txt
+          echo "::set-output name=content::$response"
+
+      - name: Push Report to WeChat via Server酱
+        run: |
+          content=$(cat report.txt)
+          content_urlencode=$(python3 -c "import urllib.parse, sys; print(urllib.parse.quote(sys.stdin.read()))" <<< "$content")
+          curl -X POST "https://sctapi.ftqq.com/SCT273715TObD5fMvM2OzwRpEitn1uMTHH.send?title=BTC快报&desp=$content_urlencode"
