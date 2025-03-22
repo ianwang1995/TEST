@@ -28,12 +28,18 @@ def get_ahr999():
         res = requests.get(url, headers=headers, timeout=10)
         soup = BeautifulSoup(res.text, 'lxml')
 
-        # 精准匹配 class='coininfo-data-num'，抓取第一个
-        ahr_value = soup.select_one("div.coininfo-data-num").text.strip()
-        return ahr_value
+        # 找到包含AHR999数值的span（紧跟“当前ahr999指标为:”）
+        label_span = soup.find('span', string="当前ahr999指标为:")
+        if label_span:
+            value_span = label_span.find_next_sibling('span')
+            ahr_value = value_span.text.strip()
+            return ahr_value
+        else:
+            raise ValueError("AHR999定位失败")
     except Exception as e:
         print("❌ AHR999抓取失败:", e)
         return "获取失败"
+
 
 
 
