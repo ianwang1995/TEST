@@ -18,7 +18,8 @@ jobs:
           python-version: '3.x'
 
       - name: Install dependencies
-        run: pip install openai requests
+        run: |
+          pip install openai==0.28 requests   # ← 这里加了版本号 ✅
 
       - name: Run BTC Report Script
         run: python btc_report.py
