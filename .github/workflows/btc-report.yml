@@ -2,7 +2,7 @@ name: BTC Daily Report Push
 
 on:
   schedule:
-    - cron: '0 2 * * *'  # UTC时间2点 = 北京时间10点
+    - cron: '0 2 * * *'  # 每天UTC时间2点 = 北京时间10点
   workflow_dispatch:
 
 jobs:
@@ -10,7 +10,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Generate BTC Report with ChatGPT
-        id: chatgpt
         run: |
           response=$(curl https://api.openai.com/v1/chat/completions \
           -H "Content-Type: application/json" \
@@ -22,10 +21,10 @@ jobs:
           }' | jq -r '.choices[0].message.content')
 
           echo "$response" > report.txt
-          echo "::set-output name=content::$response"
 
       - name: Push Report to WeChat via Server酱
         run: |
           content=$(cat report.txt)
-          content_urlencode=$(python3 -c "import urllib.parse, sys; print(urllib.parse.quote(sys.stdin.read()))" <<< "$content")
-          curl -X POST "https://sctapi.ftqq.com/SCT273715TObD5fMvM2OzwRpEitn1uMTHH.send?title=BTC快报&desp=$content_urlencode"
+          curl -X POST "https://sctapi.ftqq.com/SCT273715TObD5fMvM2OzwRpEitn1uMTHH.send" \
+          -d "title=BTC快报" \
+          --data-urlencode "desp=$content"
