@@ -21,10 +21,10 @@ jobs:
         run: |
           pip install requests openai beautifulsoup4 lxml
 
-
       - name: Install dependencies
         run: |
           pip install openai==0.28 requests   # ← 这里加了版本号 ✅
+          pip install yfinance openai requests beautifulsoup4
 
       - name: Run BTC Report Script
         run: python btc_report.py
