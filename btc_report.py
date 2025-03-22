@@ -1,6 +1,7 @@
 import requests
 import openai
 import os
+import yfinance as yf
 from bs4 import BeautifulSoup
 from datetime import datetime
 
@@ -71,27 +72,24 @@ def get_ahr999():
         return "获取失败"
 
 # === 获取 DXY 数据 ===
+
+
 def get_dxy():
-    try:
-        url = "https://www.marketwatch.com/investing/index/dxy"
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-            'Accept-Language': 'en-US,en;q=0.9',
-            'Referer': 'https://www.marketwatch.com/'
-        }
-        response = session.get(url, headers=headers, timeout=10)
-        if response.status_code != 200:
-            raise ValueError(f"请求失败，状态码: {response.status_code}")
-        
-        soup = BeautifulSoup(response.text, 'lxml')
-        element = soup.select_one("bg-quote.value")
-        if not element:
-            raise ValueError("未能定位到 bg-quote.value")
-        return element.text.strip()
-    except Exception as e:
-        print("❌ DXY获取失败:", e)
+    """
+    使用 yfinance 从 Yahoo Finance 获取 DXY（美元指数期货）数据，
+    数据为延迟行情，适合观察趋势，不适合高频交易。
+    """
+    dxy = yf.download("DX-Y.NYB", period="1d", interval="1m")
+    if not dxy.empty:
+        latest_close = dxy["Close"].iloc[-1]
+        return latest_close
+    else:
         return "获取失败"
+
+if __name__ == "__main__":
+    dxy_value = get_dxy()
+    print("最新 DXY 值:", dxy_value)
+
 
 # === 获取 RRP余额 ===
 def get_rrp_balance():
