@@ -20,13 +20,7 @@ def get_btc_price():
         print(f"❌ BTC价格抓取失败: {e}")
         return "获取失败"
 
-import requests
-from bs4 import BeautifulSoup
-
-import requests
-from bs4 import BeautifulSoup
-
-# 使用全局 Session 对象以复用 Cookie 和连接
+# === 使用全局 Session 对象以复用 Cookie 和连接 ===
 session = requests.Session()
 
 # === 获取 AHR 数据 ===
@@ -99,23 +93,6 @@ def get_dxy():
         print("❌ DXY获取失败:", e)
         return "获取失败"
 
-if __name__ == "__main__":
-    ahr_data = get_ahr_data()
-    dxy_value = get_dxy()
-    print("AHR数据:", ahr_data)
-    print("DXY:", dxy_value)
-
-
-
-# 示例：调用函数并打印结果
-if __name__ == "__main__":
-    ahr999_value = get_ahr999()
-    dxy_value = get_dxy()
-    print("AHR999:", ahr999_value)
-    print("DXY:", dxy_value)
-
-
-
 # === 获取 RRP余额 ===
 def get_rrp_balance():
     try:
@@ -141,71 +118,75 @@ def get_etf_flow():
         print(f"❌ BTC现货ETF资金流获取失败: {e}")
         return "获取失败"
 
-# === 主流程 ===
-btc_price_str = get_btc_price()
-DXY = get_dxy()
-AHR999 = get_ahr999()
-RRP = get_rrp_balance()
-US10Y = get_us10y_yield()
-ETFflow = get_etf_flow()
+def main():
+    # === 主流程 ===
+    btc_price_str = get_btc_price()
+    dxy_value = get_dxy()
+    ahr999_value = get_ahr999()
+    rrp = get_rrp_balance()
+    us10y = get_us10y_yield()
+    etf_flow = get_etf_flow()
 
-# === 验证数据 ===
-if "获取失败" in [btc_price_str, AHR999]:
-    print("❌ 数据异常，终止生成快报")
-    exit()
+    # === 验证数据 ===
+    if "获取失败" in [btc_price_str, ahr999_value]:
+        print("❌ 数据异常，终止生成快报")
+        exit()
 
-# === 拼接表格 ===
-table = f"""
+    # === 拼接表格 ===
+    table = f"""
 | 指标                   | 当前数据（变化）         | 解读/结论                           |
 |------------------------|--------------------------|------------------------------------|
 | BTC现价                | {btc_price_str}          | 日内震荡上行，支撑位$83K           |
-| DXY                    | {DXY}                    | 美元走弱，流动性宽松，看多BTC      |
-| AHR999                 | {AHR999}                 | 判断是否达加仓区，建议持有         |
-| RRP余额                | {RRP}                    | 美元流动性释放，资金宽松           |
-| 美债10Y收益率          | {US10Y}                  | 流动性小幅放松                     |
-| BTC现货ETF资金流       | {ETFflow}                | 机构买入积极，支撑BTC价格          |
-"""
+| DXY                    | {dxy_value}              | 美元走弱，流动性宽松，看多BTC      |
+| AHR999                 | {ahr999_value}           | 判断是否达加仓区，建议持有         |
+| RRP余额                | {rrp}                    | 美元流动性释放，资金宽松           |
+| 美债10Y收益率          | {us10y}                  | 流动性小幅放松                     |
+| BTC现货ETF资金流       | {etf_flow}               | 机构买入积极，支撑BTC价格          |
+    """
+    print(table)
 
-# === GPT生成总结 ===
-sum_prompt = f"""
+    # === GPT生成总结 ===
+    sum_prompt = f"""
 请写一段BTC每日快报总结，不修改任何数据：
-- 当前AHR999为{AHR999}，策略：AHR999<0.75加仓，>1.2减仓。
+- 当前AHR999为{ahr999_value}，策略：AHR999<0.75加仓，>1.2减仓。
 - BTC价格为{btc_price_str}。
 总结全球流动性状况与操作建议，强调持有不追涨，等待低位加仓。
-"""
+    """
+    openai.api_key = os.getenv("OPENAI_API_KEY")
+    try:
+        response = openai.ChatCompletion.create(
+            model="gpt-4",
+            messages=[
+                {"role": "system", "content": "你是一位加密市场分析师，语言专业简洁。"},
+                {"role": "user", "content": sum_prompt}
+            ],
+            temperature=0.7,
+            max_tokens=500
+        )
+        summary = response["choices"][0]["message"]["content"].strip()
+    except Exception as e:
+        summary = "总结生成失败"
+        print("GPT总结失败:", e)
 
-openai.api_key = os.getenv("OPENAI_API_KEY")
-try:
-    response = openai.ChatCompletion.create(
-        model="gpt-4",
-        messages=[
-            {"role": "system", "content": "你是一位加密市场分析师，语言专业简洁。"},
-            {"role": "user", "content": sum_prompt}
-        ],
-        temperature=0.7,
-        max_tokens=500
-    )
-    summary = response["choices"][0]["message"]["content"].strip()
-except Exception as e:
-    summary = "总结生成失败"
-    print("GPT总结失败:", e)
+    # === 最终快报 ===
+    final_report = f"{table}\n\n总结：\n{summary}"
+    print("生成的快报:\n", final_report)
 
-# === 最终快报 ===
-final_report = f"{table}\n\n总结：\n{summary}"
-print("生成的快报:\n", final_report)
+    # === PushPlus 推送 ===
+    pushplus_token = "fa7e3ae0480c4aec900a79ca110835d3"
+    push_url = "https://www.pushplus.plus/send"
+    payload = {
+        "token": pushplus_token,
+        "title": "BTC每日快报",
+        "content": final_report,
+        "template": "markdown"
+    }
 
-# === PushPlus 推送 ===
-pushplus_token = "fa7e3ae0480c4aec900a79ca110835d3"
-push_url = "https://www.pushplus.plus/send"
-payload = {
-    "token": pushplus_token,
-    "title": "BTC每日快报",
-    "content": final_report,
-    "template": "markdown"
-}
+    try:
+        resp = requests.post(push_url, json=payload)
+        print("PushPlus回复:", resp.json())
+    except Exception as e:
+        print("PushPlus推送失败:", e)
 
-try:
-    resp = requests.post(push_url, json=payload)
-    print("PushPlus回复:", resp.json())
-except Exception as e:
-    print("PushPlus推送失败:", e)
+if __name__ == "__main__":
+    main()
