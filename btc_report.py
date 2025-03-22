@@ -100,12 +100,8 @@ table = f"""
 """
 
 # === GPT生成总结 ===
-sum_prompt = f""
-请写一段BTC每日快报总结，不修改任何数据：
-- 当前AHR999为{AHR999}，策略：AHR999<0.75加仓，>1.2减仓。
-- BTC价格为{btc_price_str}。
-总结全球流动性状况与操作建议，强调持有不追涨，等待低位加仓。
-""
+sum_prompt = f\"\"\"\n请写一段BTC每日快报总结，不修改任何数据：\n- 当前AHR999为{AHR999}，策略：AHR999<0.75加仓，>1.2减仓。\n- BTC价格为{btc_price_str}。\n总结全球流动性状况与操作建议，强调持有不追涨，等待低位加仓。\n\"\"\"\n
+
 
 openai.api_key = os.getenv("OPENAI_API_KEY")
 try:
