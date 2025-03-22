@@ -38,7 +38,7 @@ def get_ahr999():
 
 
 # === 获取 DXY ===
-def get_dxy_marketwatch():
+def get_dxy():
     try:
         url = "https://www.marketwatch.com/investing/index/dxy"
         headers = {'User-Agent': 'Mozilla/5.0'}
