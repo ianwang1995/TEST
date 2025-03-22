@@ -28,19 +28,17 @@ def get_ahr999():
         res = requests.get(url, headers=headers, timeout=10)
         soup = BeautifulSoup(res.text, 'lxml')
 
-        # 找到包含AHR999数值的span（紧跟“当前ahr999指标为:”）
-        label_span = soup.find('span', string="当前ahr999指标为:")
+        # 修复关键：冒号必须为中文全角 “：”
+        label_span = soup.find('span', string="当前ahr999指标为：")
         if label_span:
             value_span = label_span.find_next_sibling('span')
-            ahr_value = value_span.text.strip()
-            return ahr_value
-        else:
-            raise ValueError("AHR999定位失败")
+            if value_span:
+                ahr_value = value_span.text.strip()
+                return ahr_value
+        raise ValueError("AHR999定位失败")
     except Exception as e:
         print("❌ AHR999抓取失败:", e)
         return "获取失败"
-
-
 
 
 # === 获取 DXY ===
