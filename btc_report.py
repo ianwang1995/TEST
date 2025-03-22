@@ -72,7 +72,7 @@ def get_ahr999():
 
 if __name__ == "__main__":
     # 确保调用的是已定义的函数 get_latest_ahr() 而非 get_ahr_data()
-    ahr_value = get_latest_ahr()
+    ahr_value = get_ahr999()
     print("最新 AHR 值:", ahr_value)
 
 
