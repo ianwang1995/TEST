@@ -30,11 +30,18 @@ from bs4 import BeautifulSoup
 session = requests.Session()
 
 # === 获取 AHR 数据 ===
-import requests
-
 def get_ahr999():
     """
     请求接口并返回最新的 AHR 值，即最后一组数据中下标为 1 的数值
+    接口返回数据示例：
+    {
+      "data": [
+          [1742543998.0, 0.8226, 83931.04, 104902.81, 81624.25],
+          [1742650162.0, 0.8238, 84094.3, 105006.32, 81743.14]
+      ],
+      "code": 200,
+      "msg": "success"
+    }
     """
     url = "https://dncapi.flink1.com/api/v2/index/arh999?code=bitcoin&webp=1"
     headers = {
@@ -48,33 +55,26 @@ def get_ahr999():
     
     try:
         resp = requests.get(url, headers=headers, timeout=10)
-        resp.raise_for_status()
-        data = resp.json()
+        resp.raise_for_status()  # 检查响应状态码
+        data = resp.json()       # 解析 JSON 数据
         
-        # 检查返回码和数据字段
+        # 检查返回数据结构是否符合预期
         if data.get("code") == 200 and "data" in data:
             data_list = data["data"]
             if isinstance(data_list, list) and len(data_list) > 0:
                 # 获取最后一组数据
                 last_data = data_list[-1]
-                # 检查最后一组数据是否有至少2个元素
                 if isinstance(last_data, list) and len(last_data) >= 2:
                     return last_data[1]
                 else:
                     raise ValueError("最后一组数据格式不正确")
             else:
-                raise ValueError("data字段为空或格式不正确")
+                raise ValueError("data 字段为空或格式不正确")
         else:
             raise ValueError(f"接口返回异常，返回数据：{data}")
     except Exception as e:
         print("❌ AHR 数据获取失败:", e)
-        return None
-
-if __name__ == "__main__":
-    # 确保调用的是已定义的函数 get_latest_ahr() 而非 get_ahr_data()
-    ahr_value = get_ahr999()
-    print("最新 AHR 值:", ahr_value)
-
+        return "获取失败"
 
 # === 获取 DXY 数据 ===
 def get_dxy():
