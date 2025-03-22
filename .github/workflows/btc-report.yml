@@ -1,30 +1,30 @@
-name: BTC Daily Report Push
+name: BTC Daily Report Preview
 
 on:
   schedule:
-    - cron: '0 2 * * *'  # 北京时间10点
+    - cron: '0 2 * * *'  # UTC 2点 = 北京时间10点
   workflow_dispatch:
 
 jobs:
   report:
     runs-on: ubuntu-latest
     steps:
-      - name: Generate BTC Report and Push
+      - name: Generate BTC Report Only (No Push)
         run: |
-          # 调用 GPT 接口
+          echo "调用 GPT 生成快报..."
           response=$(curl -s https://api.openai.com/v1/chat/completions \
           -H "Content-Type: application/json" \
           -H "Authorization: Bearer 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" \
           -d '{
             "model": "gpt-4",
-            "messages": [{"role": "user", "content": "生成一份今天的BTC快报，包含DXY，AHR999，ETF资金流趋势，总结流动性状况和操作建议，语气专业简洁。"}],
+            "messages": [{"role": "user", "content": "生成一份今天的BTC快报，包含DXY，AHR999，ETF资金流趋势，总结流动性状况和操作建议，语气专业简洁，用中文回答。"}],
             "temperature": 0.7
           }')
 
-          # 解析 response 内容（无 jq）
+          echo "GPT原始响应："
+          echo "$response"
+
           content=$(echo "$response" | grep -oP '"content":\s*"\K([^"]+)' | sed 's/\\n/\n/g')
 
-          # 发送到微信
-          curl -X POST "https://sctapi.ftqq.com/SCT273715TObD5fMvM2OzwRpEitn1uMTHH.send" \
-          -d "title=BTC快报" \
-          --data-urlencode "desp=$content"
+          echo "生成的快报内容："
+          echo "$content"
