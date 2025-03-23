@@ -17,6 +17,11 @@ jobs:
         with:
           python-version: '3.x'
 
+      - name: Install dependencies
+        run: |
+          pip install selenium webdriver-manager beautifulsoup4
+
+
       - name: 安装Python依赖
         run: |
           pip install requests openai beautifulsoup4 lxml
