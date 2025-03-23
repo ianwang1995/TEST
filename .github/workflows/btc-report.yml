@@ -2,7 +2,7 @@ name: BTC Daily Report Push
 
 on:
   schedule:
-    - cron: '0 2 * * *'  # 每天UTC 2点，北京时间10点
+    - cron: '0 1 * * *'  # 每天UTC 2点，北京时间10点
   workflow_dispatch:
 
 jobs:
