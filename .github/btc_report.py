@@ -77,17 +77,69 @@ def get_us10y_yield():
         print("美债10年期收益率获取失败:", e)
     return US10Y
 
+import requests
+import json
+import time
+
 def get_etf_flow():
     try:
-        headers = {'User-Agent': 'Mozilla/5.0'}
-        res = requests.get("https://www.coinglass.com/zh/bitcoin-etf", headers=headers, timeout=10)
-        soup = BeautifulSoup(res.text, 'html.parser')
-        etf_data = soup.find('div', class_='etf-data').text.strip()
-        ETFflow = f"{etf_data}亿美元"
+        # 配置 ParseHub 项目和 API Key（生产环境建议用环境变量）
+        project_token = "tB6uAjQYUA5C"
+        api_key = "tkcBJ4rg19HT"
+
+        # 1. 触发新的运行
+        trigger_url = f"https://www.parsehub.com/api/v2/projects/{project_token}/run"
+        params = {"api_key": api_key}
+        trigger_response = requests.post(trigger_url, data=params, timeout=10)
+        trigger_response.raise_for_status()
+        trigger_data = trigger_response.json()
+        run_token = trigger_data.get("run_token")
+        if not run_token:
+            raise Exception("触发运行后未返回 run_token。")
+
+        print("触发运行成功，run_token:", run_token)
+
+        # 2. 轮询等待该 run 的数据准备好
+        run_status_url = f"https://www.parsehub.com/api/v2/runs/{run_token}"
+        max_retries = 20         # 根据情况调整重试次数
+        retry_delay = 10         # 每次等待 10 秒
+        data_ready = False
+        for i in range(max_retries):
+            status_response = requests.get(run_status_url, params={"api_key": api_key}, timeout=10)
+            status_response.raise_for_status()
+            status_data = status_response.json()
+            print(f"第 {i+1} 次轮询，状态：", status_data.get("status"), " data_ready:", status_data.get("data_ready"))
+            if status_data.get("data_ready"):
+                data_ready = True
+                break
+            time.sleep(retry_delay)
+        if not data_ready:
+            raise Exception("运行未在预定时间内完成数据采集。")
+
+        # 3. 获取最新的数据：使用 last_ready_run 接口（返回 JSON 格式）
+        data_url = f"https://www.parsehub.com/api/v2/projects/{project_token}/last_ready_run/data"
+        data_response = requests.get(data_url, params={"api_key": api_key, "format": "json"}, timeout=10)
+        data_response.raise_for_status()
+        data_json = data_response.json()
+
+        # 调试时打印完整返回数据，确认数据结构后再提取你需要的字段
+        # print(json.dumps(data_json, ensure_ascii=False, indent=2))
+        
+        # 4. 根据实际返回的数据结构提取 ETF net flow 数据
+        # 这里假设返回的数据中有 "flows" 节点，其下有 "net_flow" 字段
+        net_flow = data_json.get("flows", {}).get("net_flow")
+        if net_flow is None:
+            return "获取失败：未找到 net flow 数据"
+        else:
+            return f"{net_flow}亿美元"
     except Exception as e:
-        ETFflow = "获取失败"
-        print("BTC现货ETF资金流获取失败:", e)
-    return ETFflow
+        print("ETF净流数据获取失败:", e)
+        return "获取失败"
+
+if __name__ == '__main__':
+    flow = get_etf_flow()
+    print("ETF净流数据:", flow)
+
 
 # === 构建GPT Prompt ===
 def build_prompt():
