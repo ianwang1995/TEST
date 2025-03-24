@@ -1,3 +1,4 @@
+import os
 import requests
 import http.client
 import json
@@ -122,7 +123,7 @@ def format_and_analyze():
     pi_comment = "⚠️ Pi指标预警：接近顶部" if ma110 >= ma350Mu2 * 0.95 else "✅ Pi指标健康，未到顶部区域"
 
     # === 输出表格 ===
-    print(f"""📢 BTC每日快报
+    table = f"""
 | 指标            | 当前数据                       | 解读/建议                          |
 |-----------------|--------------------------------|-----------------------------------|
 | BTC现价         | {btc_str}                     |                                   |
@@ -130,8 +131,8 @@ def format_and_analyze():
 | AHR999          | {ahr999:.2f}                   | {ahr_comment}                     |
 | MVRV Z-Score    | {mvrv_str}                     | {mvrv_comment}                    |
 | Pi循环指标      | {pi_str}                       | {pi_comment}                      |
-| ETF流入         | {etf_str}                      | 机构资金流，短期波动支撑BTC       |
-""")
+"""
+        print(table)
 
     # === GPT总结 ===
     summary_prompt = f"""
