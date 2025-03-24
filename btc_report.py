@@ -53,21 +53,6 @@ def get_ahr999():
         print("❌ AHR999 获取失败:", e)
         return None
 
-# === 获取 ETF 流入 ===
-def get_etf_flow():
-    try:
-        conn = http.client.HTTPSConnection("open-api.coinank.com")
-        headers = {'apikey': 'cae396cf323241b686a4c0b76844c848'}
-        conn.request("GET", "/api/etf/usBtcInflow", '', headers)
-        res = conn.getresponse()
-        data = res.read()
-        json_data = json.loads(data.decode("utf-8"))
-        today_flow = json_data.get("data", {}).get("totalNetInflow", 0)
-        return today_flow
-    except Exception as e:
-        print("❌ ETF流获取失败:", e)
-        return None
-
 # === 获取 Pi 指标 ===
 def get_pi_indicator():
     try:
@@ -122,8 +107,6 @@ def format_and_analyze():
     ahr_comment = "策略：>1.2减仓，<0.75加仓"
     mvrv_comment = "极度高估⚠️" if zscore > 7 else ("极度低估✅" if zscore < 0 else "市场正常，观望为主")
     pi_comment = "⚠️ Pi指标预警：接近顶部" if ma110 >= ma350Mu2 * 0.95 else "✅ Pi指标健康，未到顶部区域"
-    # ETF流入的解读（示例，可根据实际情况调整）
-    etf_comment = "流入强劲" if etf_flow > 0 else "流出或平稳"
 
     # === 输出表格 ===
     table = f"""📢 BTC每日快报
@@ -134,7 +117,6 @@ def format_and_analyze():
 | AHR999          | {ahr999:.2f}                       | {ahr_comment}                      |
 | MVRV Z-Score    | {mvrv_str}                         | {mvrv_comment}                     |
 | Pi循环指标      | {pi_str}                           | {pi_comment}                       |
-| ETF流入         | {etf_str}                          | {etf_comment}                      |
 """
 
     # === GPT总结 ===
