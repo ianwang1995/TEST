@@ -123,16 +123,16 @@ def format_and_analyze():
     pi_comment = "⚠️ Pi指标预警：接近顶部" if ma110 >= ma350Mu2 * 0.95 else "✅ Pi指标健康，未到顶部区域"
 
     # === 输出表格 ===
-    table = f"""
+table = f"""📢 BTC每日快报
 | 指标            | 当前数据                       | 解读/建议                          |
 |-----------------|--------------------------------|-----------------------------------|
-| BTC现价         | {btc_str}                     |                                   |
-| DXY             | {dxy:.2f}                      | {dxy_comment}                     |
-| AHR999          | {ahr999:.2f}                   | {ahr_comment}                     |
-| MVRV Z-Score    | {mvrv_str}                     | {mvrv_comment}                    |
-| Pi循环指标      | {pi_str}                       | {pi_comment}                      |
+| BTC现价         | {btc_price}                   |                                   |
+| DXY             | {dxy_value}                   | {dxy_comment}                     |
+| AHR999          | {ahr999_value}                | 策略：>1.2减仓，<0.75加仓         |
+| MVRV Z-Score    | MVRV Z-Score: {mvrv_z:.2f}    | {mvrv_comment}                    |
+| Pi循环指标      | 110DMA: {dma110}, 350DMAx2: {dma350} | {pi_comment}               |
+| ETF流入         | {etf_flow} USD                | {etf_comment}                     |
 """
-        print(table)
 
     # === GPT总结 ===
     summary_prompt = f"""
