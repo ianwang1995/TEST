@@ -126,8 +126,8 @@ def main():
 | BTC现价          | {btc_str}          | 支撑位$83K，短期波动         |
 | DXY              | {dxy:.2f}          | 美元走弱，利好BTC           |
 | AHR999           | {ahr999:.2f}       | 策略：>1.2减仓，<0.75加仓    |
-| MVRV Z-Score     | {mvrv}             |                               |
-| Pi循环指标       | {pi_cycle}         |                               |
+| MVRV Z-Score     | {mvrv}             |  大于7清仓，小于0抄底                             |
+| Pi循环指标       | {pi_cycle}         |    ma110 > ma350x2:⚠️ Pi指标预警：接近顶部，警惕回调            |
 """
 
     # === GPT总结 ===
