@@ -134,26 +134,26 @@ table = f"""📢 BTC每日快报
 | ETF流入         | {etf_flow} USD                | {etf_comment}                     |
 """
 
-# === GPT总结 ===
-summary_prompt = f"""
+    # === GPT总结 ===
+    summary_prompt = f"""
 BTC现价为{btc_str}，AHR999为{ahr999:.2f}。策略是AHR999<0.75加仓，>1.2减仓。根据我记忆库里的BTC翻盘计划和策略，不修改任何数据，根据全球流动性和指标生成今日总结。
 """
 
-try:
-    openai.api_key = os.getenv("OPENAI_API_KEY")
-    resp = openai.ChatCompletion.create(
-        model="gpt-4",
-        messages=[{"role": "user", "content": summary_prompt}],
-        temperature=0.7,
-        max_tokens=500
-    )
-    summary = resp["choices"][0]["message"]["content"].strip()
-except Exception as e:
-    summary = "总结生成失败"
-    print("GPT失败:", e)
+    try:
+        openai.api_key = os.getenv("OPENAI_API_KEY")
+        resp = openai.ChatCompletion.create(
+            model="gpt-4",
+            messages=[{"role": "user", "content": summary_prompt}],
+            temperature=0.7,
+            max_tokens=500
+        )
+        summary = resp["choices"][0]["message"]["content"].strip()
+    except Exception as e:
+        summary = "总结生成失败"
+        print("GPT失败:", e)
 
-final_report = f"📊 BTC每日快报\n{table}\n📢 总结：\n{summary}"
-print(final_report)
+    final_report = f"📊 BTC每日快报\n{table}\n📢 总结：\n{summary}"
+    print(final_report)
 
     # === 推送 PushPlus ===
     push_token = "fa7e3ae0480c4aec900a79ca110835d3"
@@ -164,12 +164,14 @@ print(final_report)
         "content": final_report,
         "template": "markdown"
     }
+
     try:
-        r = requests.post(push_url, json=payload)
+        r = requests.post(push_url, json=payload, timeout=10)
+        r.raise_for_status()
         print("✅ 推送成功:", r.json())
     except Exception as e:
         print("❌ 推送失败:", e)
 
+# === 程序入口 ===
 if __name__ == "__main__":
     format_and_analyze()
-
