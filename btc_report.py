@@ -169,4 +169,5 @@ BTC现价为{btc_str}，AHR999为{ahr999:.2f}。策略是AHR999<0.75加仓，>1.
         print("❌ 推送失败:", e)
 
 if __name__ == "__main__":
-    main()
+    format_and_analyze()
+
