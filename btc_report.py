@@ -4,6 +4,7 @@ import http.client
 import json
 from datetime import datetime
 import yfinance as yf
+import openai  # 别忘了导入openai
 
 # === 获取 BTC 价格 ===
 def get_btc_price():
@@ -110,28 +111,30 @@ def format_and_analyze():
         print("❌ 数据不全，终止生成")
         return
 
-    # === 表格 ===
+    # === 表格与字符串格式化 ===
     btc_str = f"${btc_price:,.0f}（{btc_change:+.2f}% {'↑' if btc_change > 0 else '↓'}）"
     etf_str = f"{etf_flow:,.0f} USD"
-    mvrv_str = f"MVRV Z-Score: {zscore:.2f}"
+    mvrv_str = f"{zscore:.2f}"
     pi_str = f"110DMA: ${ma110:,.2f}, 350DMAx2: ${ma350Mu2:,.2f}"
 
     # === 解读 ===
     dxy_comment = "美元走弱，利好BTC" if dxy < 104 else "美元走强，警惕BTC回调"
-    ahr_comment = f"策略：{'>1.2减仓，<0.75加仓'}"
+    ahr_comment = "策略：>1.2减仓，<0.75加仓"
     mvrv_comment = "极度高估⚠️" if zscore > 7 else ("极度低估✅" if zscore < 0 else "市场正常，观望为主")
     pi_comment = "⚠️ Pi指标预警：接近顶部" if ma110 >= ma350Mu2 * 0.95 else "✅ Pi指标健康，未到顶部区域"
+    # ETF流入的解读（示例，可根据实际情况调整）
+    etf_comment = "流入强劲" if etf_flow > 0 else "流出或平稳"
 
     # === 输出表格 ===
-table = f"""📢 BTC每日快报
-| 指标            | 当前数据                       | 解读/建议                          |
-|-----------------|--------------------------------|-----------------------------------|
-| BTC现价         | {btc_price}                   |                                   |
-| DXY             | {dxy_value}                   | {dxy_comment}                     |
-| AHR999          | {ahr999_value}                | 策略：>1.2减仓，<0.75加仓         |
-| MVRV Z-Score    | MVRV Z-Score: {mvrv_z:.2f}    | {mvrv_comment}                    |
-| Pi循环指标      | 110DMA: {dma110}, 350DMAx2: {dma350} | {pi_comment}               |
-| ETF流入         | {etf_flow} USD                | {etf_comment}                     |
+    table = f"""📢 BTC每日快报
+| 指标            | 当前数据                           | 解读/建议                          |
+|-----------------|------------------------------------|------------------------------------|
+| BTC现价         | {btc_str}                          |                                    |
+| DXY             | {dxy:.2f}                          | {dxy_comment}                      |
+| AHR999          | {ahr999:.2f}                       | {ahr_comment}                      |
+| MVRV Z-Score    | {mvrv_str}                         | {mvrv_comment}                     |
+| Pi循环指标      | {pi_str}                           | {pi_comment}                       |
+| ETF流入         | {etf_str}                          | {etf_comment}                      |
 """
 
     # === GPT总结 ===
