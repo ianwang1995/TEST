@@ -1,138 +1,141 @@
 import requests
-import openai
-import os
 import http.client
 import json
 from datetime import datetime
 import yfinance as yf
 
-# === BTC 价格 ===
+# === 获取 BTC 价格 ===
 def get_btc_price():
     try:
-        url = "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_change=true"
-        r = requests.get(url, timeout=10)
+        api = "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_change=true"
+        r = requests.get(api, timeout=10)
         r.raise_for_status()
         data = r.json()
         price = data['bitcoin']['usd']
         change = data['bitcoin']['usd_24h_change']
-        if price < 60000:
-            raise ValueError(f"BTC价格异常: {price}")
         return price, change
     except Exception as e:
         print(f"❌ BTC价格抓取失败: {e}")
         return None, None
 
-# === AHR999 ===
-def get_ahr999():
-    url = "https://dncapi.flink1.com/api/v2/index/arh999?code=bitcoin&webp=1"
-    headers = {
-        "User-Agent": "Mozilla/5.0",
-        "Referer": "https://www.feixiaohao.com/",
-    }
-    try:
-        resp = requests.get(url, headers=headers, timeout=10)
-        data = resp.json()
-        last_data = data["data"][-1]
-        return last_data[1]
-    except Exception as e:
-        print("❌ AHR999获取失败:", e)
-        return None
-
-# === DXY ===
+# === 获取 DXY ===
 def get_dxy():
     try:
         ticker = yf.Ticker("DX-Y.NYB")
         data = ticker.history(period="1d", interval="1m")
-        return data["Close"].iloc[-1] if not data.empty else None
+        if not data.empty:
+            return data["Close"].iloc[-1]
+        else:
+            return None
     except Exception as e:
-        print("❌ DXY获取失败:", e)
+        print("❌ DXY 获取失败:", e)
         return None
 
-# === Pi Cycle ===
-def get_pi_cycle():
-    api_key = 'cae396cf323241b686a4c0b76844c848'  # 替换你的 CoinAnk API key
-    conn = http.client.HTTPSConnection("open-api.coinank.com")
-    headers = {'apikey': api_key}
-    conn.request("GET", "/api/indicator/getBtcPi", '', headers)
-    res = conn.getresponse()
-    data = res.read().decode("utf-8")
-    json_data = json.loads(data)
+# === 获取 AHR999 ===
+def get_ahr999():
+    url = "https://dncapi.flink1.com/api/v2/index/arh999?code=bitcoin&webp=1"
+    headers = {
+        "User-Agent": "Mozilla/5.0",
+        "Referer": "https://www.feixiaohao.com/"
+    }
+    try:
+        resp = requests.get(url, headers=headers, timeout=10)
+        resp.raise_for_status()
+        data = resp.json()
+        if data.get("code") == 200 and "data" in data:
+            last_data = data["data"][-1]
+            return last_data[1]
+        else:
+            raise ValueError(f"接口返回异常: {data}")
+    except Exception as e:
+        print("❌ AHR999 获取失败:", e)
+        return None
 
-    if json_data.get("success") and "data" in json_data:
-        try:
-            d = json_data["data"]
-            btc_price = d["priceList"][-1]
-            ma110 = d["ma110"][-1]
-            ma350x2 = d["ma350Mu2"][-1]
-            now_date = datetime.utcfromtimestamp(d["timeList"][-1]/1000).strftime("%Y-%m-%d")
-            desc = f"📅 {now_date}\nBTC：${btc_price:,.2f}，110DMA：${ma110:,.2f}，350DMAx2：${ma350x2:,.2f}"
+# === 获取 ETF 流入 ===
+def get_etf_flow():
+    try:
+        conn = http.client.HTTPSConnection("open-api.coinank.com")
+        headers = {'apikey': 'cae396cf323241b686a4c0b76844c848'}
+        conn.request("GET", "/api/etf/usBtcInflow", '', headers)
+        res = conn.getresponse()
+        data = res.read()
+        json_data = json.loads(data.decode("utf-8"))
+        today_flow = json_data.get("data", {}).get("totalNetInflow", 0)
+        return today_flow
+    except Exception as e:
+        print("❌ ETF流获取失败:", e)
+        return None
 
-            if ma110 > ma350x2:
-                status = "⚠️ Pi指标预警：接近顶部，警惕回调"
-            elif abs(ma110 - ma350x2) / ma350x2 < 0.05:
-                status = "⏳ Pi指标接近顶部区域，保持警惕"
-            else:
-                status = "✅ Pi指标健康，未到顶部区域"
-            return f"{desc}\n{status}"
-        except Exception as e:
-            print("❌ Pi数据解析失败:", e)
-            return "获取失败"
-    else:
-        return "获取失败"
+# === 获取 Pi 指标 ===
+def get_pi_indicator():
+    try:
+        conn = http.client.HTTPSConnection("open-api.coinank.com")
+        headers = {'apikey': 'cae396cf323241b686a4c0b76844c848'}
+        conn.request("GET", "/api/indicator/getBtcPi", '', headers)
+        res = conn.getresponse()
+        data = json.loads(res.read().decode("utf-8"))
+        ma110 = data["data"]["ma110"][-1]
+        ma350Mu2 = data["data"]["ma350Mu2"][-1]
+        return ma110, ma350Mu2
+    except Exception as e:
+        print("❌ Pi指标获取失败:", e)
+        return None, None
 
-# === MVRV Z-Score ===
+# === 获取 MVRV Z-Score ===
 def get_mvrv_zscore():
-    api_key = 'cae396cf323241b686a4c0b76844c848'  # 替换你的 CoinAnk API key
-    conn = http.client.HTTPSConnection("open-api.coinank.com")
-    headers = {'apikey': api_key}
-    conn.request("GET", "/api/indicator/index/charts?type=/charts/mvrv-zscore/", '', headers)
-    res = conn.getresponse()
-    data = res.read().decode("utf-8")
-    json_data = json.loads(data)
+    try:
+        conn = http.client.HTTPSConnection("open-api.coinank.com")
+        headers = {'apikey': 'cae396cf323241b686a4c0b76844c848'}
+        conn.request("GET", "/api/indicator/index/charts?type=/charts/mvrv-zscore/", '', headers)
+        res = conn.getresponse()
+        data = json.loads(res.read().decode("utf-8"))
+        zscore = data["data"]["value4"][-1]
+        return zscore
+    except Exception as e:
+        print("❌ MVRV Z-Score 获取失败:", e)
+        return None
 
-    if json_data.get("success") and "data" in json_data:
-        try:
-            zscore = json_data["data"]["value4"][-1]
-            if zscore > 7:
-                status = f"📍 MVRV Z-Score：{zscore:.2f}，⚠️ 高估，建议减仓"
-            elif zscore < 0:
-                status = f"📍 MVRV Z-Score：{zscore:.2f}，✅ 低估，定投良机"
-            else:
-                status = f"📍 MVRV Z-Score：{zscore:.2f}，⏳ 市场正常，观望为主"
-            return status
-        except Exception as e:
-            print("❌ MVRV解析失败:", e)
-            return "获取失败"
-    else:
-        return "获取失败"
-
-# === 快报主函数 ===
-def main():
-    btc_price, change = get_btc_price()
-    ahr999 = get_ahr999()
+# === 格式化数据与解读 ===
+def format_and_analyze():
+    btc_price, btc_change = get_btc_price()
     dxy = get_dxy()
-    pi_cycle = get_pi_cycle()
-    mvrv = get_mvrv_zscore()
+    ahr999 = get_ahr999()
+    etf_flow = get_etf_flow()
+    ma110, ma350Mu2 = get_pi_indicator()
+    zscore = get_mvrv_zscore()
 
-    if None in [btc_price, ahr999]:
-        print("❌ 核心数据获取失败，终止生成")
+    # --- 数据校验 ---
+    if None in [btc_price, btc_change, dxy, ahr999, etf_flow, ma110, ma350Mu2, zscore]:
+        print("❌ 数据不全，终止生成")
         return
 
-    # === 数据整理 ===
-    btc_str = f"${btc_price:,.0f}（{change:+.2f}% {'↑' if change > 0 else '↓'}）"
-    table = f"""
-| 指标             | 当前数据           | 解读/建议                     |
-|------------------|--------------------|-------------------------------|
-| BTC现价          | {btc_str}          | 支撑位$83K，短期波动         |
-| DXY              | {dxy:.2f}          | 美元走弱，利好BTC           |
-| AHR999           | {ahr999:.2f}       | 策略：>1.2减仓，<0.75加仓    |
-| MVRV Z-Score     | {mvrv}             |  大于7清仓，小于0抄底                             |
-| Pi循环指标       | {pi_cycle}         |    ma110 > ma350x2:⚠️ Pi指标预警：接近顶部，警惕回调            |
-"""
+    # === 表格 ===
+    btc_str = f"${btc_price:,.0f}（{btc_change:+.2f}% {'↑' if btc_change > 0 else '↓'}）"
+    etf_str = f"{etf_flow:,.0f} USD"
+    mvrv_str = f"MVRV Z-Score: {zscore:.2f}"
+    pi_str = f"110DMA: ${ma110:,.2f}, 350DMAx2: ${ma350Mu2:,.2f}"
+
+    # === 解读 ===
+    dxy_comment = "美元走弱，利好BTC" if dxy < 104 else "美元走强，警惕BTC回调"
+    ahr_comment = f"策略：{'>1.2减仓，<0.75加仓'}"
+    mvrv_comment = "极度高估⚠️" if zscore > 7 else ("极度低估✅" if zscore < 0 else "市场正常，观望为主")
+    pi_comment = "⚠️ Pi指标预警：接近顶部" if ma110 >= ma350Mu2 * 0.95 else "✅ Pi指标健康，未到顶部区域"
+
+    # === 输出表格 ===
+    print(f"""📢 BTC每日快报
+| 指标            | 当前数据                       | 解读/建议                          |
+|-----------------|--------------------------------|-----------------------------------|
+| BTC现价         | {btc_str}                     |                                   |
+| DXY             | {dxy:.2f}                      | {dxy_comment}                     |
+| AHR999          | {ahr999:.2f}                   | {ahr_comment}                     |
+| MVRV Z-Score    | {mvrv_str}                     | {mvrv_comment}                    |
+| Pi循环指标      | {pi_str}                       | {pi_comment}                      |
+| ETF流入         | {etf_str}                      | 机构资金流，短期波动支撑BTC       |
+""")
 
     # === GPT总结 ===
     summary_prompt = f"""
-BTC现价为{btc_str}，AHR999为{ahr999:.2f}。策略是AHR999<0.75加仓，>1.2减仓。根据全球流动性和指标生成今日总结，提醒稳健操作、持币为主。
+BTC现价为{btc_str}，AHR999为{ahr999:.2f}。策略是AHR999<0.75加仓，>1.2减仓。根据我记忆库里的BTC翻盘计划和策略，不修改任何数据，根据全球流动性和指标生成今日总结。
 """
     try:
         openai.api_key = os.getenv("OPENAI_API_KEY")
