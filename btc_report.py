@@ -87,18 +87,16 @@ def format_and_analyze():
     btc_price, btc_change = get_btc_price()
     dxy = get_dxy()
     ahr999 = get_ahr999()
-    etf_flow = get_etf_flow()
     ma110, ma350Mu2 = get_pi_indicator()
     zscore = get_mvrv_zscore()
 
     # --- 数据校验 ---
-    if None in [btc_price, btc_change, dxy, ahr999, etf_flow, ma110, ma350Mu2, zscore]:
+    if None in [btc_price, btc_change, dxy, ahr999, ma110, ma350Mu2, zscore]:
         print("❌ 数据不全，终止生成")
         return
 
     # === 表格与字符串格式化 ===
     btc_str = f"${btc_price:,.0f}（{btc_change:+.2f}% {'↑' if btc_change > 0 else '↓'}）"
-    etf_str = f"{etf_flow:,.0f} USD"
     mvrv_str = f"{zscore:.2f}"
     pi_str = f"110DMA: ${ma110:,.2f}, 350DMAx2: ${ma350Mu2:,.2f}"
 
