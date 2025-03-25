@@ -138,29 +138,26 @@ BTC现价为{btc_str}，AHR999为{ahr999:.2f}。策略是AHR999<0.75加仓，>1.
     final_report = f"📊 BTC每日快报\n{table}\n📢 总结：\n{summary}"
     print(final_report)
 
-import time
-
-# 定义两个 token
+    # === 推送 PushPlus ===
 push_tokens = [
-    "fa7e3ae0480c4aec900a79ca110835d3",  # 第一个 token
-    "9214b072485b429b8b041d65b9e8886b"   # 第二个 token
+    "fa7e3ae0480c4aec900a79ca110835d3",
+    "9214b072485b429b8b041d65b9e8886b"
 ]
-
 push_url = "https://www.pushplus.plus/send"
-title = "BTC每日快报"
-# 请确保 final_report 是一个字符串，且内容符合要求
-content = final_report
 
 for token in push_tokens:
     payload = {
-        "token": token,
-        "title": title,
-        "content": content,
-        "template": "html"  # 先使用 html 模板测试
+        "token": token,  # 每次传入单个 token
+        "title": "BTC每日快报",
+        "content": final_report,
+        "template": "markdown"
     }
-    response = requests.post(push_url, json=payload)
-    print(f"Token {token} 推送结果：", response.text)
-    time.sleep(1)  # 避免连续请求可能引起的问题
+    try:
+        r = requests.post(push_url, json=payload, timeout=10)
+        r.raise_for_status()
+        print(f"✅ 推送成功 ({token}):", r.json())
+    except Exception as e:
+        print(f"❌ 推送失败 ({token}):", e)
 
 
 # === 程序入口 ===
