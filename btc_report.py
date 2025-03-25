@@ -138,26 +138,29 @@ BTC现价为{btc_str}，AHR999为{ahr999:.2f}。策略是AHR999<0.75加仓，>1.
     final_report = f"📊 BTC每日快报\n{table}\n📢 总结：\n{summary}"
     print(final_report)
 
-    # === 推送 PushPlus ===
-push_tokens = [
-    "fa7e3ae0480c4aec900a79ca110835d3",
-    "9214b072485b429b8b041d65b9e8886b"
-]
-push_url = "https://www.pushplus.plus/send"
+if __name__ == "__main__":
+    format_and_analyze()
 
-for token in push_tokens:
-    payload = {
-        "token": token,  # 每次传入单个 token
-        "title": "BTC每日快报",
-        "content": final_report,
-        "template": "markdown"
-    }
-    try:
-        r = requests.post(push_url, json=payload, timeout=10)
-        r.raise_for_status()
-        print(f"✅ 推送成功 ({token}):", r.json())
-    except Exception as e:
-        print(f"❌ 推送失败 ({token}):", e)
+    # === 推送 PushPlus ===
+    push_tokens = [
+        "fa7e3ae0480c4aec900a79ca110835d3",
+        "9214b072485b429b8b041d65b9e8886b"
+    ]
+    push_url = "https://www.pushplus.plus/send"
+    
+    for token in push_tokens:
+        payload = {
+            "token": token,
+            "title": "BTC每日快报",
+            "content": final_report,
+            "template": "markdown"
+        }
+        try:
+            r = requests.post(push_url, json=payload, timeout=10)
+            r.raise_for_status()
+            print(f"✅ 推送成功 ({token}):", r.json())
+        except Exception as e:
+            print(f"❌ 推送失败 ({token}):", e)
 
 
 # === 程序入口 ===
