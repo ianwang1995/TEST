@@ -119,7 +119,7 @@ def format_and_analyze():
 
     # === GPT总结 ===
     summary_prompt = f"""
-BTC现价为{btc_str}，AHR999为{ahr999:.2f}。策略是AHR999<0.75加仓，>1.2减仓。根据我记忆库里的BTC翻盘计划和策略，不修改任何数据，根据全球流动性和指标生成今日总结，以及给一个明确的结论：观望等待或者加仓或者卖出（不要说废话，比如注意风险之类的，我要精炼的信息）。
+BTC现价为{btc_str}，AHR999为{ahr999:.2f}。策略是AHR999<0.75加仓，>1.2减仓。根据我记忆库里的BTC翻盘计划和策略，不修改任何数据，根据全球流动性和指标生成今日总结，以及给一个明确的结论：耐心等待或者加仓或者卖出（不要说废话，比如注意风险之类的，我要精炼的信息）。
 """
 
     try:
@@ -139,7 +139,10 @@ BTC现价为{btc_str}，AHR999为{ahr999:.2f}。策略是AHR999<0.75加仓，>1.
     print(final_report)
 
     # === 推送 PushPlus ===
-    push_token = "fa7e3ae0480c4aec900a79ca110835d3"
+    push_tokens = [
+    "fa7e3ae0480c4aec900a79ca110835d3",
+    "9214b072485b429b8b041d65b9e8886b"
+]
     push_url = "https://www.pushplus.plus/send"
     payload = {
         "token": push_token,
