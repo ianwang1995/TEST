@@ -145,7 +145,7 @@ BTC现价为{btc_str}，AHR999为{ahr999:.2f}。策略是AHR999<0.75加仓，>1.
 ]
     push_url = "https://www.pushplus.plus/send"
     payload = {
-        "token": push_token,
+        "token": push_tokens,
         "title": "BTC每日快报",
         "content": final_report,
         "template": "markdown"
