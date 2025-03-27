@@ -93,7 +93,7 @@ def format_and_analyze():
     # --- 数据校验 ---
     if None in [btc_price, btc_change, dxy, ahr999, ma110, ma350Mu2, zscore]:
         print("❌ 数据不全，终止生成")
-        return
+        return None
 
     # === 表格与字符串格式化 ===
     btc_str = f"${btc_price:,.0f}（{btc_change:+.2f}% {'↑' if btc_change > 0 else '↓'}）"
@@ -133,26 +133,28 @@ BTC现价为{btc_str}，AHR999为{ahr999:.2f}。策略是AHR999<0.75加仓，>1.
         summary = resp["choices"][0]["message"]["content"].strip()
     except Exception as e:
         summary = "总结生成失败"
-        print("GPT失败:", e)
+        print("GPT调用失败:", e)
 
     final_report = f"📊 BTC每日快报\n{table}\n📢 总结：\n{summary}"
     print(final_report)
+    return final_report
 
-if __name__ == "__main__":
-    format_and_analyze()
+def push_report(report):
+    if not report:
+        print("❌ 没有可推送的报告")
+        return
 
-    # === 推送 PushPlus ===
     push_tokens = [
         "fa7e3ae0480c4aec900a79ca110835d3",
         "9214b072485b429b8b041d65b9e8886b"
     ]
     push_url = "https://www.pushplus.plus/send"
-    
+
     for token in push_tokens:
         payload = {
             "token": token,
             "title": "BTC每日快报",
-            "content": final_report,
+            "content": report,
             "template": "markdown"
         }
         try:
@@ -162,7 +164,7 @@ if __name__ == "__main__":
         except Exception as e:
             print(f"❌ 推送失败 ({token}):", e)
 
-
-# === 程序入口 ===
 if __name__ == "__main__":
-    format_and_analyze()
+    # 生成报告并推送
+    report = format_and_analyze()
+    push_report(report)
