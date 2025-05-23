@@ -103,7 +103,7 @@ def format_and_analyze():
     # === 解读 ===
     dxy_comment = "美元走弱，利好BTC" if dxy < 104 else "美元走强，警惕BTC回调"
     ahr_comment = "策略：>1.2减仓，<0.75加仓"
-    mvrv_comment = "极度高估⚠️" if zscore > 7 else ("极度低估✅" if zscore < 0 else "市场正常，观望为主")
+    mvrv_comment = "高估⚠️" if zscore > 4 else ("极度低估✅" if zscore < 0 else "市场正常，观望为主")
     pi_comment = "⚠️ Pi指标预警：接近顶部" if ma110 >= ma350Mu2 * 0.95 else "✅ Pi指标健康，未到顶部区域"
 
     # === 输出表格 ===
