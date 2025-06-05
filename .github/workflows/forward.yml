@@ -1,0 +1,17 @@
+name: Forward TradingView Alert to PushPlus
+
+on:
+  repository_dispatch:
+    types: [tradingview-alert]
+
+jobs:
+  forward:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Forward message to PushPlus
+        run: |
+          curl -X POST "https://www.pushplus.plus/send" \
+            -d "token=fa7e3ae0480c4aec900a79ca110835d3" \
+            -d "title=SP500 Indicator" \
+            -d "content=${{ github.event.client_payload.message }}" \
+            -d "template=html"
